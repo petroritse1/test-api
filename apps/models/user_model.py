@@ -9,10 +9,10 @@ Follow = db.Table("Follow",
 
 class User(db.Model):
     id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(),nullable=False)
-    email= db.Column(db.String(),nullable=False,unique=True)
-    password = db.Column(db.String(),nullable=False)
-    date_created = db.Column(db.String(),default=datetime.utcnow)
+    name = db.Column(db.String(100),nullable=False)
+    email= db.Column(db.String(256),nullable=False,unique=True)
+    password = db.Column(db.String(256),nullable=False)
+    date_created = db.Column(db.String(256),default=datetime.utcnow)
     posts = db.relationship("Post",backref="user",cascade="all,delete",lazy="dynamic")
     followers = db.relationship('User', 
                                 secondary = Follow, 
