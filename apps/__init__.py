@@ -1,3 +1,6 @@
+import redis
+from rq import Queue
+import os
 from flask import Flask,jsonify
 from .routes.users_info import blp as UserBlueprint
 from flask_sqlalchemy import SQLAlchemy
@@ -7,12 +10,19 @@ from .db import db
 from flask_jwt_extended import JWTManager
 from blocklist import BLOCKLIST
 from flask_migrate import Migrate
+from dotenv import load_dotenv
 
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
+    load_dotenv()
+    connection = redis.from_url(os.getenv('REDIS_URL'))
+    app.queue =  Queue("emails",connection=connection)
+
     app.config.from_object(config_class)
+
+
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "User info REST API"
     app.config["API_VERSION"] = "v1"

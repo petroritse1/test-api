@@ -8,3 +8,6 @@ flask-jwt
 flask_jwt_extended
 gunicorn
 psycopg2
+requests
+rq
+redis

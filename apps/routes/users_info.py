@@ -7,10 +7,17 @@ from sqlalchemy.exc import IntegrityError,SQLAlchemyError
 from ..db import db
 from flask_jwt_extended import create_access_token,jwt_required,get_jwt,create_refresh_token,get_jwt_identity
 from blocklist import BLOCKLIST
+import os,requests
+from sqlalchemy import or_
+from tasks import send_user_registration_email
+from flask import current_app
 
 
 blp = Blueprint("user",__name__,description="Users blue print")
 
+
+
+ 
 
  
  
@@ -26,17 +33,22 @@ class Users(MethodView):
     @blp.arguments(UserSchema)
     @blp.response(201,UserSchema)
     def post(self,user_data):
-        if User.query.filter(User.name == user_data["name"]).first():
-            abort(409,message="A user with that username already exists.")
+        if User.query.filter(or_(User.email== user_data["email"],User.name == user_data["name"])).first():
+            abort(409,message="A user with that username or email already exists.")
         user_data["password"]= User.set_password(self,user_data["password"])
         new_user = User(**user_data)
         try:
             db.session.add(new_user)
             db.session.commit()
+
+            body =f"Welcome {user_data['name']} to petesroy testing applications!🎉"
+            subject = "Account created!"
+            current_app.queue.enqueue(send_user_registration_email,user_data["email"],user_data["name"])
+            # send_user_registration_email(user_data["email"],user_data["name"])
         except IntegrityError:
             abort(400,message="Name already exists!")
         except SQLAlchemyError:
-            db.session.rollback()
+            # db.session.rollback()
             abort(500,message="An error occurred while inserting the item.")
          
         return jsonify({"messagge":f"New user {new_user.name} has been added successfully!🎉"})
